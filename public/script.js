@@ -52,7 +52,7 @@ async function State() {
   const jsonInput = document.getElementById('json-data');
   const button = document.getElementById('submitButton');
   if (!Commands[0].commands.length) {
-    return showResult('Please provide at least one valid command for execution.');
+    return showResult('يرجى تحديد أمر واحد على لأقل للتشغيل البوت');
   }
   try {
     button.style.display = 'none';
@@ -82,13 +82,13 @@ async function State() {
       }
     } else {
       jsonInput.value = '';
-      showResult('Invalid JSON data. Please check your input.');
+      showResult('بيانات JSON غير صالحة. يرجى التحقق من المدخلات الخاصة بك.');
       showAds();
     }
   } catch (parseError) {
     jsonInput.value = '';
-    console.error('Error parsing JSON:', parseError);
-    showResult('Error parsing JSON. Please check your input.');
+    console.error('بيانات JSON غير صالحة. يرجى التحقق من المدخلات الخاصة بك.:', parseError);
+    showResult('خطأ في تحليل JSON. يرجى التحقق من المدخلات الخاصة بك.');
     showAds();
   } finally {
     setTimeout(() => {
