@@ -1,33 +1,70 @@
-const axios = require('axios');
-module.exports.config = {
-  name: 'ai',
-  version: '1.0.0',
-  role: 0,
-  hasPrefix: false,
-  aliases: ['gpt', 'openai'],
-  description: "An AI command powered by GPT-4",
-  usage: "Ai [promot]",
-  credits: 'Developer',
-  cooldown: 3,
+const axios = require("axios");
+const fs = require("fs").promises;
+const path = require("path");
+
+module.exports = {
+  config: {
+    name: "بارد",
+    usePrefix: true,
+    description: "Get the URLs of the first two images when the user replies to an image.",
+    hasPermssion: 0, // 0 for all users, 1 for admin, 2 for dev
+    credits: "OPERATOR ISOY",
+    commandCategory: "template",
+    usages: "",
+    cooldowns: 5,
+  },
+  run: async function ({ api, event, args, commandModules }) {
+    const geminiApiUrl = "https://gemini.easy-api.online/v1/completion"; 
+
+    try {
+      const text = args.join(" ");
+      if (!text) {
+        return api.sendMessage("Please provide a question or query", event.threadID, event.messageID);
+      }
+
+      let imageBase64Array = [];
+
+      if (event.type === "message_reply" && event.messageReply.attachments && event.messageReply.attachments.length > 0) {
+        const attachments = event.messageReply.attachments;
+
+        imageBase64Array = await Promise.all(attachments.map(async (attachment) => {
+          if (attachment.type === "photo" || attachment.type === "animated_image" || attachment.type === "video") {
+            const imageData = await downloadAndSaveImage(attachment.url, attachment.type);
+            return imageData;
+          }
+        }));
+      }
+
+      const response = await axios.post(geminiApiUrl, {
+        prompt: text,
+        imageBase64Array,
+      });
+
+      const data = response.data.content;
+
+      api.sendMessage(data, event.threadID, event.messageID);
+    } catch (error) {
+      console.error(error);
+      api.sendMessage("An error occurred while processing the command.", event.threadID);
+    }
+  },
 };
-module.exports.run = async function({
-  api,
-  event,
-  args
-}) {
-  const input = args.join(' ');
-  if (!input) {
-    api.sendMessage(`Please provide a question or statement after 'ai'. For example: 'ai What is the capital of France?'`, event.threadID, event.messageID);
-    return;
-  }
-  api.sendMessage(`🔍 "${input}"`, event.threadID, event.messageID);
+
+async function downloadAndSaveImage(imageUrl, imageType) {
   try {
-    const {
-      data
-    } = await axios.get(`https://api-soyeon.onrender.com/api?prompt=${encodeURIComponent(input)}`);
-    const response = data.response;
-    api.sendMessage(response + '\n\nhttps://bit.ly/create-chatbot-me', event.threadID, event.messageID);
+    const response = await axios.get(imageUrl, { responseType: "arraybuffer" });
+    const imageBuffer = Buffer.from(response.data);
+    
+    const fileExtension = imageType === "video" ? "mp4" : "png";
+    const fileName = `gemini_${Date.now()}.${fileExtension}`;
+
+    const imagePath = path.join(__dirname, "cache", fileName);
+    await fs.writeFile(imagePath, imageBuffer);
+
+    const imageData = await fs.readFile(imagePath, { encoding: "base64" });
+    return imageData;
   } catch (error) {
-    api.sendMessage('An error occurred while processing your request.', event.threadID, event.messageID);
+    console.error("Error downloading and saving image:", error);
+    throw error;
   }
-};
+}
