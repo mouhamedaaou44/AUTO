@@ -154,13 +154,13 @@
 
             switch (true) {
                 case days > 0:
-                    timeFormat += `${days} day${days > 1 ? 's' : ''} `;
+                    timeFormat += `${days} يوم${days > 1 ? 's' : ''} `;
                 case hours > 0:
-                    timeFormat += `${hours} hour${hours > 1 ? 's' : ''} `;
+                    timeFormat += `${hours} ساعة${hours > 1 ? 's' : ''} `;
                 case minutes > 0:
-                    timeFormat += `${minutes} minute${minutes > 1 ? 's' : ''} `;
+                    timeFormat += `${minutes} دقيقة${minutes > 1 ? 's' : ''} `;
                 default:
-                    timeFormat += `${seconds} second${seconds > 1 ? 's' : ''}`;
+                    timeFormat += `${seconds} ثانية${seconds > 1 ? 's' : ''}`;
             }
 
             return timeFormat.trim();
